@@ -1,0 +1,23 @@
+<!-- home.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Tailwind CSS を読み込む -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 曜日選択ボタン -->
+    <h2>曜日を選択してください:</h2><p></p>
+
+    <div class="flex space-x-4">
+        {% for day in CourseSchedule.DAY_OF_WEEK_CHOICES %}
+        <a href="{% url 'courses' day.0 %}">
+            <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                {{ day.1 }}
+            </button>
+        </a>
+        {% endfor %}
+    </div>
+</body>
+</html>
+

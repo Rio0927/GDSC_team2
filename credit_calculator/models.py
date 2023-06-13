@@ -69,7 +69,6 @@ class Professor(models.Model):
 # 科目と教授の関連性のモデル
 class CourseProfessor(models.Model):
     course_schedule = models.ForeignKey(CourseSchedule, on_delete=models.CASCADE, related_name='professors')  # 科目スケジュールへの参照
-    # course_instance = models.ForeignKey(CourseInstance, on_delete=models.CASCADE, related_name='professors')  # 科目のインスタンスへの参照
     professor = models.ForeignKey(Professor, on_delete=models.CASCADE)  # 教授への参照
 
 

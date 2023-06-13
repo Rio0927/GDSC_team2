@@ -23,24 +23,6 @@ class Course(models.Model):
     required_or_select = models.IntegerField(choices=REQUIRED_OR_SELECT_CHOICES)  # 必修科目か選択科目か
     minimum_grade_level = models.IntegerField(default=1)  # 受講可能な最低学年
 
-# 科目のインスタンスのモデル
-# class CourseInstance(models.Model):
-#     # FIRST_TERM = 0
-#     # SECOND_TERM = 1
-#     # SUMMER = 2
-#     # ALL_YEAR = 3
-#     FIRST_TERM = "前期"
-#     SECOND_TERM = "後期"
-#     SUMMER = "夏季集中"
-#     ALL_YEAR = "通年"
-#     TERM_CHOICES = [
-#         (FIRST_TERM, '前期'),
-#         (SECOND_TERM, '後期'),
-#         (SUMMER, '夏季集中'),
-#         (ALL_YEAR, '通年'),
-#     ]
-#     course = models.ForeignKey(Course, on_delete=models.CASCADE)  # 科目への参照
-#     semester = models.CharField(max_length=20, choices=TERM_CHOICES, default=FIRST_TERM)
 
 # 科目のスケジュールのモデル
 class CourseSchedule(models.Model):

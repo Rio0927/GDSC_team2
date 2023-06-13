@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import User
 
 # 科目群のモデル
 class Genre(models.Model):
@@ -89,3 +90,4 @@ class Timetable(models.Model):
 class Like(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)  # ユーザープロフィールへの参照
     course_instance = models.ForeignKey(CourseSchedule, on_delete=models.CASCADE)  # 科目のインスタンスへの参照
+

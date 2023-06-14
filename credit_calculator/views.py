@@ -5,6 +5,7 @@ from .forms import SignUpForm
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import login, logout
+from django.views.generic import TemplateView
 
 class CourseView(View):
     def get(self, request, day_of_week=None):
@@ -85,3 +86,6 @@ def signin_func(request):
 def signout_func(request):
     logout(request)
     return redirect('home')
+
+class MyPage(TemplateView):
+    template_name = "mypage.html"

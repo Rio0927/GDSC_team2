@@ -1,0 +1,10 @@
+{% block content %}
+<h1>マイページ</h1>
+
+{% if user.is_authenticated %}
+<h3>{{ user.username }}</h3>
+<h3>memo:プロフィール画像と学部情報についてはまだ開発してません</h3>
+{% else %}
+<a href="{% url 'signin' %}">サインインしてください</a>
+{% endif %}
+{% endblock %}

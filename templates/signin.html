@@ -1,0 +1,17 @@
+{% block content %}
+  <h2>SignIn</h2>
+  <form method="post">
+    {% csrf_token %}
+
+    {{ message }}
+    <p><label for="inputEmail">email</label>
+    <input type="email" placeholder="email" name="email"></p>
+    <p><label for="inputPassword">password</label>
+    <input type="password" placeholder="password" name="password"></p>
+    
+    <div>
+    <button type="submit">サインイン</button>
+    </div>
+    <a href="{% url 'home' %}">戻る</a>
+  </form>
+{% endblock %}

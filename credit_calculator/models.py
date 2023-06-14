@@ -90,3 +90,5 @@ class Like(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)  # ユーザープロフィールへの参照
     course_instance = models.ForeignKey(CourseSchedule, on_delete=models.CASCADE)  # 科目のインスタンスへの参照
 
+# UserのEmailをUniqueにする
+User._meta.get_field('email')._unique = True

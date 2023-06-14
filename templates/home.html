@@ -18,6 +18,10 @@
         </a>
         {% endfor %}
     </div>
+    <h1>ログイン中のユーザー：{{ user }}</h1>
+    <a href="{% url 'signup' %}">サインアップする</a><br>
+    <a href="{% url 'signin' %}">サインインする</a><br>
+    <a href="{% url 'signout' %}">サインアウトする</a>
 </body>
 </html>
 

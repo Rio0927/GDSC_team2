@@ -51,8 +51,15 @@
         </form>
         <div>
             <h2 class="text-2xl font-bold my-4">
-                {% for day, hours in day_and_hour %}{% if hours %}{{day}}曜{% for hour in hours %}{{hour}}{% if not forloop.last %},{% endif %}{% endfor %}限{% if not forloop.last %}、{% endif %}{% endif %}{% endfor %}
-                {{grade_level}}年(以下)、{% if semester %}{% for sem in semester %}{{ sem }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}の検索結果
+                <!-- 指定した曜日 -->
+                {% for day, hours in day_and_hour %}
+                    {% if hours %}
+                    {{day}}曜{% for hour in hours %}{{hour}}{% if not forloop.last %},{% endif %}{% endfor %}限{% if not forloop.last %}、{% endif %}{% endif %}
+                {% endfor %}
+                <!-- 指定した学年 -->
+                {{grade_level}}年(以下)、
+                <!-- 指定した学期 -->
+                {% if semester %}{% for sem in semester %}{{ sem }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}の検索結果
             </h2>
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {% for course in schedules %}

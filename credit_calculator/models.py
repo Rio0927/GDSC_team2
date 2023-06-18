@@ -46,25 +46,25 @@ class CourseSchedule(models.Model):
     SATURDAY = "土"
 
     DAY_OF_WEEK_CHOICES = [
-        (NULL, 'NULL'),
-        (MONDAY, 'Monday'),
-        (TUESDAY, 'Tuesday'),
-        (WEDNESDAY, 'Wednesday'),
-        (THURSDAY, 'Thursday'),
-        (FRIDAY, 'Friday'),
-        (SATURDAY, 'Saturday'),
+        (NULL, 'その他'),
+        (MONDAY, '月曜'),
+        (TUESDAY, '火曜'),
+        (WEDNESDAY, '水曜'),
+        (THURSDAY, '木曜'),
+        (FRIDAY, '金曜'),
+        (SATURDAY, '土曜'),
     ]
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='schedules')  # 科目への参照
-    semester = models.CharField(max_length=20, choices=TERM_CHOICES, default=FIRST_TERM)
-    day_of_week = models.CharField(max_length=5, choices=DAY_OF_WEEK_CHOICES)  # 曜日
+    semester = models.CharField(max_length = 20, choices=TERM_CHOICES, default=FIRST_TERM)
+    day_of_week = models.CharField(max_length = 5, choices=DAY_OF_WEEK_CHOICES)  # 曜日
     period = models.IntegerField()  # 時間帯
-    classroom = models.CharField(max_length=50, blank=True) #教室
+    classroom = models.CharField(max_length = 50, blank=True) #教室
 
 # 教授のモデル
 class Professor(models.Model):
-    last_name = models.CharField(max_length=50)  # 教授の姓
-    first_name = models.CharField(max_length=50)  # 教授の名
+    last_name = models.CharField(max_length = 50)  # 教授の姓
+    first_name = models.CharField(max_length = 50)  # 教授の名
 
 # 科目と教授の関連性のモデル
 class CourseProfessor(models.Model):

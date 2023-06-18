@@ -1,0 +1,96 @@
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+</head>
+
+<body>
+    <div class="container mx-auto">
+        <h1 class="text-4xl my-4">Course Search</h1>
+        <form method="get" class="bg-white shadow-lg rounded px-8 pt-6 pb-8 mb-4">
+            <div class="accordion">
+                <h2 class="text-blue-700">曜日・時限</h2>
+                <div class="accordion">
+                    <h3>月曜日</h3>
+                    <div>{{ form.monday_period }}</div>
+                    <h3>火曜日</h3>
+                    <div>{{ form.tuesday_period }}</div>
+                    <h3>水曜日</h3>
+                    <div>{{ form.wednesday_period }}</div>
+                    <h3>木曜日</h3>
+                    <div>{{ form.thursday_period }}</div>
+                    <h3>金曜日</h3>
+                    <div>{{ form.friday_period }}</div>
+                    <h3>土曜日</h3>
+                    <div>{{ form.saturday_period }}</div>
+                </div>
+                <h3>学期</h3>
+                <div>{{ form.semester }}</div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="grade_level">
+                    学年
+                </label>
+                {{ form.grade_level|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" }}
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="professor_name">
+                    教授名
+                </label>
+                {{ form.professor_name|add_class:"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" }}
+            </div>
+            <div class="flex items-center justify-between">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
+                    Search
+                </button>
+            </div>
+        </form>
+        <div>
+            <h2 class="text-2xl font-bold my-4">
+                {% for day, hours in day_and_hour %}{% if hours %}{{day}}曜{% for hour in hours %}{{hour}}{% if not forloop.last %},{% endif %}{% endfor %}限{% if not forloop.last %}、{% endif %}{% endif %}{% endfor %}
+                {{grade_level}}年(以下)、{% if semester %}{% for sem in semester %}{{ sem }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}の検索結果
+            </h2>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {% for course in schedules %}
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-lg mb-2">{{ course.course.name }}</h3>
+                    <p><span class="font-bold">曜日:</span> {{ course.day_of_week }}曜日</p>
+                    <p><span class="font-bold">時間:</span> {{ course.period }}時限</p>
+                    <p><span class="font-bold">教室:</span> {{ course.classroom }}</p>
+                    <p><span class="font-bold">教授:</span>
+                        {% for professor in course.professors.all %}
+                        {{ professor.professor.last_name }}
+                        {% if professor.professor.last_name != professor.professor.first_name %}
+                        {{ professor.professor.first_name }}
+                        {% endif %}
+                        {% if not forloop.last %}
+                        ,
+                        {% endif %}
+                        {% endfor %}
+                    </p>
+
+                    <p><span class="font-bold">学期:</span> {{ course.semester }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        $(function () {
+            $(".accordion").accordion({
+                active: true,
+                collapsible: true,
+                heightStyle: "content",
+            });
+        });
+    </script>
+</body>
+
+</html>

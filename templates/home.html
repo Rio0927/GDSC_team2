@@ -6,18 +6,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- 曜日選択ボタン -->
-    <h2>曜日を選択してください:</h2><p></p>
 
-    <div class="flex space-x-4">
-        {% for day in CourseSchedule.DAY_OF_WEEK_CHOICES %}
-        <a href="{% url 'courses' day.0 %}">
-            <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                {{ day.1 }}
-            </button>
-        </a>
-        {% endfor %}
-    </div>
     {% if user.is_authenticated %}
     <h1>ログイン中のユーザー：{{ user }}</h1>
     {% endif %}
@@ -30,6 +19,31 @@
     <a href="{% url 'signin' %}">サインインする</a><br>
     {% endif %}
     
+    
+    <script>
+        function toggleMenu() {
+          let accordion = document.getElementsById('accordion');
+          let montoggle = document.getElementById('montoggle');
+
+          if (accordion.style.display === 'none') {
+            accordion.style.display = 'block';
+            montoggle.innerText = "Close";
+          } else {
+            accordion.style.display = 'none';
+            montoggle.innerText = "Open";
+          }
+        }
+
+        window.onload = function () {
+          document.getElementById('monday').addEventListener('change', function (e) {
+            var checks = document.getElementsByClassName('mondayClass');
+            for (var i = 0; i < checks.length; i++) {
+              checks[i].checked = e.target.checked;
+            }
+          });
+        };
+
+    </script>
 </body>
 </html>
 

@@ -1,20 +1,52 @@
 from django.views import View
 from django.shortcuts import render, redirect
-from .models import CourseSchedule
-from .forms import SignUpForm
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import login, logout
 from django.views.generic import TemplateView
+from .models import CourseSchedule, Course, Professor
+from .forms import SignUpForm
+from .forms import CourseSearchForm
 
-class CourseView(View):
-    def get(self, request, day_of_week=None):
-        courses = CourseSchedule.objects.filter(day_of_week=day_of_week)#.select_related('course_schedule__course')
+from django.db.models import Q
 
-        return render(request, '../templates//courses.html', {
-            'day_of_week': day_of_week,
-            'courses': courses,
-        })
+def course_search(request):
+    form = CourseSearchForm(request.GET)
+    schedules = CourseSchedule.objects.all()
+
+    if form.is_valid():
+        semester = form.cleaned_data['semester']
+        grade_level = form.cleaned_data['grade_level']
+        professor_name = form.cleaned_data['professor_name']
+
+        period_data = {
+            CourseSchedule.MONDAY: form.cleaned_data['monday_period'],
+            CourseSchedule.TUESDAY: form.cleaned_data['tuesday_period'],
+            CourseSchedule.WEDNESDAY: form.cleaned_data['wednesday_period'],
+            CourseSchedule.THURSDAY: form.cleaned_data['thursday_period'],
+            CourseSchedule.FRIDAY: form.cleaned_data['friday_period'],
+            CourseSchedule.SATURDAY: form.cleaned_data['saturday_period'],
+        }
+
+        s_objects = Q()
+        if semester:
+            for s in semester:
+                s_objects |= Q(semester=s)
+            schedules = schedules.filter(s_objects)
+        if grade_level:
+            schedules = schedules.filter(course__minimum_grade_level__lte=grade_level)
+        if professor_name:
+            schedules = schedules.filter(professors__professor__last_name__icontains=professor_name)
+
+        q_objects = Q()
+        for day, periods in period_data.items():
+            if periods:
+                q_objects |= Q(day_of_week=day, period__in=periods)
+
+        schedules = schedules.filter(q_objects)
+
+    return render(request, 'search.html', {'form': form, 'schedules': schedules, 'semester':semester, 'grade_level':grade_level, 'day_and_hour':period_data.items()})
+
 
 class HomeView(View):
     def get(self, request):

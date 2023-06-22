@@ -4,11 +4,28 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import login, logout
 from django.views.generic import TemplateView
-from .models import CourseSchedule, Course, Professor
+from .models import CourseSchedule, Course, Professor, Timetable
 from .forms import SignUpForm
 from .forms import CourseSearchForm
 
 from django.db.models import Q
+
+#時間割り登録
+def timetable(request):
+    if request.method == 'POST':
+        selected_course_id = request.POST.get('course')  # フォームから選択されたコースのIDを取得
+        selected_course = Course.objects.get(pk=selected_course_id)  # IDに基づいてコースオブジェクトを取得
+        grade = request.POST.get('grade')  # フォームから成績を取得
+        semester = request.POST.get('semester')  # フォームから学期を取得
+
+        # タイムテーブルモデルのインスタンスを作成してデータベースに保存
+        timetable = Timetable(course_instance=selected_course, grade=grade, semester=semester)
+        timetable.save()
+
+        return redirect('timetable')  # 時間割ページにリダイレクトするなど、適切な処理を行う
+    else:
+        return render(request, 'form.html')  # フォームを表示するテンプレートを返す
+
 
 def course_search(request):
     form = CourseSearchForm(request.GET)

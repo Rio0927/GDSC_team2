@@ -62,27 +62,32 @@
                 {% if semester %}{% for sem in semester %}{{ sem }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}の検索結果
             </h2>
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {% for course in schedules %}
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h3 class="font-bold text-lg mb-2">{{ course.course.name }}</h3>
-                    <p><span class="font-bold">曜日:</span> {{ course.day_of_week }}曜日</p>
-                    <p><span class="font-bold">時間:</span> {{ course.period }}時限</p>
-                    <p><span class="font-bold">教室:</span> {{ course.classroom }}</p>
-                    <p><span class="font-bold">教授:</span>
-                        {% for professor in course.professors.all %}
-                        {{ professor.professor.last_name }}
-                        {% if professor.professor.last_name != professor.professor.first_name %}
-                        {{ professor.professor.first_name }}
-                        {% endif %}
-                        {% if not forloop.last %}
-                        ,
-                        {% endif %}
-                        {% endfor %}
-                    </p>
+                <form method="post" action="{% url 'timetable' %}">
+                    {% csrf_token %}
+                    {% for course in schedules %}
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-bold text-lg mb-2">{{ course.course.name }}</h3>
+                        <input type="hidden" name="course" value="{{ course.id }}">
+                        <button type="submit">時間割りに追加する</button>
+                        <p><span class="font-bold">曜日:</span> {{ course.day_of_week }}曜日</p>
+                        <p><span class="font-bold">時間:</span> {{ course.period }}時限</p>
+                        <p><span class="font-bold">教室:</span> {{ course.classroom }}</p>
+                        <p><span class="font-bold">教授:</span>
+                            {% for professor in course.professors.all %}
+                            {{ professor.professor.last_name }}
+                            {% if professor.professor.last_name != professor.professor.first_name %}
+                            {{ professor.professor.first_name }}
+                            {% endif %}
+                            {% if not forloop.last %}
+                            ,
+                            {% endif %}
+                            {% endfor %}
+                        </p>
 
-                    <p><span class="font-bold">学期:</span> {{ course.semester }}</p>
-                </div>
-                {% endfor %}
+                        <p><span class="font-bold">学期:</span> {{ course.semester }}</p>
+                    </div>
+                    {% endfor %}
+                </form>    
             </div>
         </div>
 

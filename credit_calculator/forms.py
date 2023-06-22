@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 
 from .models import CourseSchedule, Course, Professor
 
+
+
 class CourseSearchForm(forms.Form):
     SEMESTER_CHOICES = list(CourseSchedule.TERM_CHOICES)
     DAY_OF_WEEK_CHOICES = [('', '全て')] + list(CourseSchedule.DAY_OF_WEEK_CHOICES)

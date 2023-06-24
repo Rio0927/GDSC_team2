@@ -4,28 +4,38 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import login, logout
 from django.views.generic import TemplateView
-from .models import CourseSchedule, Course, Professor, Timetable
+from .models import CourseSchedule, Course, Professor, Timetable, UserProfile
 from .forms import SignUpForm
 from .forms import CourseSearchForm
 
 from django.db.models import Q
 
+from django.http import HttpResponse
+
 #時間割り登録
-def timetable(request):
-    if request.method == 'POST':
-        selected_course_id = request.POST.get('course')  # フォームから選択されたコースのIDを取得
-        selected_course = Course.objects.get(pk=selected_course_id)  # IDに基づいてコースオブジェクトを取得
-        grade = request.POST.get('grade')  # フォームから成績を取得
-        semester = request.POST.get('semester')  # フォームから学期を取得
+def new_timetable_item(request, course_id, semester, grade, day_of_week, period, classroom): #semesterはCourseScheduleの持っている値　gradeはCourseのminimum_grade_levelにしてある。詳細が不明だったため間違ってるかも
 
-        # タイムテーブルモデルのインスタンスを作成してデータベースに保存
-        timetable = Timetable(course_instance=selected_course, grade=grade, semester=semester)
+    if semester == "前期":
+        sem = 1
+    elif semester == "後期":
+        sem = 2
+
+    userProfile = UserProfile.objects.get(user=request.user)
+
+    selected_course = Course.objects.get(id=course_id) #科目の取得
+
+    selected_course_schedule = CourseSchedule.objects.get(course=selected_course, day_of_week=day_of_week, period=period, classroom=classroom) #選択されたCourseScheduleを取得
+
+    # すでに登録されていれば登録はスルー（ただしこのコードでは同じ名前の科目で違う先生、教室などの科目は複数登録できてしまう）
+    try:
+        t = Timetable.objects.get(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # すでに登録されていた場合exceptはスキップされる
+        message = "すでに登録されています"
+    except:
+        timetable = Timetable(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # まだ登録されていなかった場合はここで登録される
         timetable.save()
-
-        return redirect('timetable')  # 時間割ページにリダイレクトするなど、適切な処理を行う
-    else:
-        return render(request, 'form.html')  # フォームを表示するテンプレートを返す
-
+        message = "登録されました！！！"
+        
+    return HttpResponse(message) #コースのIDを画面に出力
 
 def course_search(request):
     form = CourseSearchForm(request.GET)
@@ -63,7 +73,6 @@ def course_search(request):
         schedules = schedules.filter(q_objects)
 
     return render(request, 'search.html', {'form': form, 'schedules': schedules, 'semester':semester, 'grade_level':grade_level, 'day_and_hour':period_data.items()})
-
 
 class HomeView(View):
     def get(self, request):

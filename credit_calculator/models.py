@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 # 科目群のモデル
 class Genre(models.Model):
     name = models.CharField(max_length=20)  # 科目群の名前
@@ -75,8 +78,14 @@ class CourseProfessor(models.Model):
 # ユーザーのプロフィールのモデル
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # ユーザーへの参照
-    grade = models.IntegerField()  # 学年
-    semester = models.IntegerField()  # 学期
+    grade = models.IntegerField(default=1, blank=True)  # 学年 
+    semester = models.IntegerField(default=1, blank=True)  # 学期　1が前期
+    
+    #以下のコードでユーザーが作成されるとこのユーザープロフィールモデルも同時で作成されるようになる。
+    @receiver(post_save, sender=User)
+    def create_user_profile(sender, instance, created, **kwargs):
+        if created:
+            UserProfile.objects.create(user=instance)
 
 # ユーザーのタイムテーブルのモデル
 class Timetable(models.Model):

@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import HomeView, signup_func, signin_func, signout_func, MyPage, course_search, new_timetable_item
+from .views import HomeView, signup_func, signin_func, signout_func, MyPage, course_search, new_timetable_item, edit_profile_func
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
@@ -8,6 +8,7 @@ urlpatterns = [
     path('signin/', signin_func, name="signin"),
     path('signout/', signout_func, name="signout"),
     path('mypage/', MyPage.as_view(), name="mypage"),
+    path('edit_profile.html', edit_profile_func, name="edit_profile"),
     path('search/', course_search, name='course_search'),
     path('new_timetable_item/<int:course_id>/<str:semester>/<int:grade>/<str:day_of_week>/<int:period>/<str:classroom>', new_timetable_item, name='new_timetable_item'),
 ]

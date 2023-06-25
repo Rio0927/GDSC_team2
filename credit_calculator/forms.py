@@ -2,8 +2,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-
-from .models import CourseSchedule, Course, Professor
+from django.db import models
+from .models import CourseSchedule, Course, Professor, UserProfile
 
 
 
@@ -62,3 +62,15 @@ class SignUpForm(UserCreationForm):
     class Meta:
         model = User
         fields = ("first_name", "last_name", "email", "password1", "password2")
+
+# class GradeSemesterForm:
+#     grade = forms.ChoiceField(choices=(
+#         (1, "1年"),
+#         (2, "2年"),
+#         (3, "3年"),
+#         (4, "4年"),
+#     ))
+#     semseter = forms.ChoiceField(choices=(
+#         (1, "前期"),
+#         (2, "後期"),
+#     ))

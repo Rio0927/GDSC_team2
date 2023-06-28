@@ -4,13 +4,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import login, logout
 from django.views.generic import TemplateView
-from .models import CourseSchedule, Course, Professor, Timetable, UserProfile
+from .models import CourseSchedule, Course, Timetable, UserProfile
 from .forms import SignUpForm
 from .forms import CourseSearchForm
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.contrib import messages
 from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
@@ -50,11 +49,10 @@ def register_timetable(request):
             return JsonResponse({'status':'warning', 'message':f'{course_instance.course.name} は既に時間割に登録されています。'})
 
 
-# from collections import defaultdict
+# 時間割画面の元をレンダリングするだけ
+def timetable(request):return render(request, 'timetable.html')
 
-def timetable(request):
-    return render(request, 'timetable.html')
-
+# 時間割表示の機能
 def display_timetable(request):
     grade = int(request.POST.get('grade')) if request.method == 'POST' else 1
     semester = int(request.POST.get('semester')) if request.method == 'POST' else 1
@@ -63,6 +61,7 @@ def display_timetable(request):
     days = ["月","火","水","木","金","土"]
     periods = list(range(1,7))
 
+    # そのユーザーが指定した学年・学期における時間割情報を取得
     courses = Timetable.objects.filter(user=user_profile, 
                                       grade=grade, 
                                       semester=semester)
@@ -72,6 +71,7 @@ def display_timetable(request):
         for j in periods:
             key = f"{i}{j}"
             try:
+                # 特定の曜日・時限に何か授業を取っていれば辞書に格納
                 course = courses.get(course_instance__day_of_week=i, course_instance__period=j)
                 course_profs = CourseProfessor.objects.filter(course_schedule=course.course_instance).select_related('professor')
                 courses_dict[key] = {
@@ -80,6 +80,7 @@ def display_timetable(request):
                     "classroom": course.course_instance.classroom,
                     "genre": course.course_instance.course.genre.name,
                 }
+            # 特定の曜日・時限に何か授業を取っていなければ辞書には空白を格納
             except Timetable.DoesNotExist:
                 courses_dict[key] = {
                     "name": " ",
@@ -90,7 +91,7 @@ def display_timetable(request):
 
     return JsonResponse({'status':'success', 'courses': courses_dict})
 
-
+# 受講可能な授業のリストを返す（関数名変更したほうがいいかも）
 def show_courses(request):
     if request.method == 'POST':
         grade = int(request.POST.get('grade'))
@@ -114,7 +115,7 @@ def show_courses(request):
 
         return JsonResponse({'status':'success', 'courses': courses_list})
 
-
+# 授業を検索する
 def course_search(request):
     form = CourseSearchForm(request.GET)
     schedules = CourseSchedule.objects.all()
@@ -224,11 +225,12 @@ def signout_func(request):
     logout(request)
     return redirect('home')
 
+
 class MyPage(TemplateView):
     template_name = "mypage.html"
 
 
-    #時間割り登録
+#時間割り登録
 def new_timetable_item(request, course_id, semester, grade, day_of_week, period, classroom): #semesterはCourseScheduleの持っている値　gradeはCourseのminimum_grade_levelにしてある。詳細が不明だったため間違ってるかも
 
     if semester == "前期":

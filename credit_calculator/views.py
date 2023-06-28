@@ -13,7 +13,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor
 from django.http import JsonResponse
-
+from django.forms.models import model_to_dict
 
 
 
@@ -52,42 +52,44 @@ def register_timetable(request):
 
 # from collections import defaultdict
 
-
+def timetable(request):
+    return render(request, 'timetable.html')
 
 def display_timetable(request):
-    if request.method == 'POST':
-        grade = int(request.POST.get('grade'))
-        semester = int(request.POST.get('semester'))
-        user_profile = UserProfile.objects.get(user=request.user)
-        timetables = Timetable.objects.filter(user=user_profile, 
-                                          grade=grade, 
-                                          semester=semester)
-    
-    else:
-        grade, semester = 1, 1
-        user_profile = UserProfile.objects.get(user=request.user)
-        timetables = Timetable.objects.filter(user=user_profile, 
-                                          grade=1, semester=1)
-    days = list("月火水木金土")
-    periods = list(range(1, 7))  # Adjust this range according to your needs
+    grade = int(request.POST.get('grade')) if request.method == 'POST' else 1
+    semester = int(request.POST.get('semester')) if request.method == 'POST' else 1
+    user_profile = UserProfile.objects.get(user=request.user)
 
-    timetable_matrix = {}
-    for day in days:
-        for period in periods:
-            key = f"{day}_{period}"
-            timetable_matrix[key] = ""  # Initialize all cells as empty
+    days = ["月","火","水","木","金","土"]
+    periods = list(range(1,7))
 
-    for timetable in timetables:
-        key = f"{timetable.course_instance.day_of_week}_{timetable.course_instance.period}"
-        timetable_matrix[key] = timetable.course_instance.course.name  # Overwrite the cells with registered courses
+    courses = Timetable.objects.filter(user=user_profile, 
+                                      grade=grade, 
+                                      semester=semester)
 
-    context = {'grade':grade, 'semester':'前期'if semester==1 else "後期", 'timetable_matrix': timetable_matrix, 'days': days, 'periods': periods}
-    # if request.method == 'POST':return JsonResponse(context)
-    return render(request, 'timetable.html', context)
+    courses_dict = {}
+    for i in days:
+        for j in periods:
+            key = f"{i}{j}"
+            try:
+                course = courses.get(course_instance__day_of_week=i, course_instance__period=j)
+                course_profs = CourseProfessor.objects.filter(course_schedule=course.course_instance).select_related('professor')
+                courses_dict[key] = {
+                    "name": course.course_instance.course.name,
+                    "prof": [f"{prof.professor.last_name} {prof.professor.first_name}" for prof in course_profs],
+                    "classroom": course.course_instance.classroom,
+                    "genre": course.course_instance.course.genre.name,
+                }
+            except Timetable.DoesNotExist:
+                courses_dict[key] = {
+                    "name": " ",
+                    "prof": " ",
+                    "classroom": " ",
+                    "genre": " ",
+                }
 
+    return JsonResponse({'status':'success', 'courses': courses_dict})
 
-from django.http import JsonResponse
-from django.forms.models import model_to_dict
 
 def show_courses(request):
     if request.method == 'POST':
@@ -117,6 +119,7 @@ def course_search(request):
     form = CourseSearchForm(request.GET)
     schedules = CourseSchedule.objects.all()
 
+    #フォームが入力されているとき（検索において学期、学年、教授名などが指定されているとき）
     if form.is_valid():
         semester = form.cleaned_data['semester']
         grade_level = form.cleaned_data['grade_level']

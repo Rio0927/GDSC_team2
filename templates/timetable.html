@@ -2,8 +2,7 @@
 
 {% block content %}
 
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
@@ -32,6 +31,8 @@
 
     </div>
 
+
+
     <style>
         .drawer {
             height: 0;
@@ -56,12 +57,11 @@
 
 
     <script>
-
         function pushButton(day, period) {
             console.log(day);
             console.log(period);
-            grade = document.getElementById('grade').value;
-            semester = document.getElementById('semester').value;
+            let grade = document.getElementById('grade').value;
+            let semester = document.getElementById('semester').value;
             console.log(semester);
             $.ajax({
                 url: "{% url 'show_courses' %}",
@@ -108,15 +108,15 @@
             });
         }
 
-        function checkedCourse(){
+        function checkedCourse() {
             let elems = document.getElementsByName("courses");
             for (let i = 0; i < elems.length; i++) {
-                        // i番目のラジオボタンがチェックされているかを判定
-                        if (elems[i].checked) {
-                            console.log(elems[i].value);
-                            return elems[i].value;
-                        }
-                    }
+                // i番目のラジオボタンがチェックされているかを判定
+                if (elems[i].checked) {
+                    console.log(elems[i].value);
+                    return elems[i].value;
+                }
+            }
         }
 
         function registerCourse(courseId, grade, semester) {
@@ -146,6 +146,7 @@
                     }
                 }
             });
+            displayTimetable()
         }
 
         function closeDrawer() {
@@ -153,45 +154,91 @@
             drawer.classList.remove('open');
         }
 
-        window.onload = function () {
-            const container = document.getElementById('grid-container');
-            let days = [" ", "月", "火", "水", "木", "金", "土"];
-            for (let i = 1; i <= 7; i++) {  // 7列 × 6行 = 42
-                for (let j = 1; j <= 7; j++) {
-                    const card = document.createElement('button');
-                    card.className = 'card bg-blue-200 p-2 py-12 text-center';
-
-                    if (i == 1) {
-                        let days = [" ", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                        card.className = 'card bg-white text-2xl p-2 py-12 text-center';
-                        card.textContent = days[j - 1];
-                    } else if (j == 1) {
-                        card.textContent = i - 1;
-                        card.className = 'card bg-white text-2xl p-2 py-12 text-center';
-
-                    } else {
-                        card.id = `${days[j - 1]}_${i - 1}`
-                        card.textContent = `${days[j - 1]} ${i - 1}`;
-                        card.setAttribute('onclick', `pushButton("${days[j - 1]}", "${i - 1}")`);
-                        card.addEventListener('click', function () {
-                            const drawer = document.querySelector('.drawer');
-                            if (!drawer.classList.contains('open')) {
-                                drawer.classList.add('open');
-                            }
-                        });
-                    }
-
-                    container.appendChild(card);
-                }
-            }
+        function displayTimetable() {
+            let grade = document.getElementById('grade').value;
+            let semester = document.getElementById('semester').value;
             const drawer = document.createElement('div');
             drawer.className = 'drawer rounded-3xl';
             document.body.appendChild(drawer);
+            $.ajax({
+                url: "{% url 'display_timetable' %}",
+                type: "POST",
+                data: {
+                    grade: grade,
+                    semester: semester,
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.status == "success") {
+                        const container = document.getElementById('grid-container');
+                        container.innerHTML = "";
+                        let days = ["", "月", "火", "水", "木", "金", "土"];
+                        let periods = ["", "1", "2", "3", "4", "5", "6"];
+                        let colorClass = {
+                            "情報基盤": "bg-blue-200",
+                            "情報法": "bg-yellow-200",
+                            "関連科目": "bg-green-200",
+                            "演習科目": "bg-red-200",
+                            "グローバル": "bg-purple-200",
+                            "教養": "bg-orange-200",
+                            "他学部履修科目": "bg-pink-200",
+                            " ":"bg-gray-200"
+                        }
 
 
+                        for (let period of periods) {
+                            for (let day of days) {
+                                const card = document.createElement('button');
+                                
+                                if (period == "") {
+                                    card.className = 'card bg-white text-2xl p-2 py-12 text-center';
+                                    card.textContent = day;
+
+                                } else if (day == "") {
+                                    card.textContent = period;
+                                    card.className = 'card bg-white text-2xl p-2 py-12 text-center';
+                                } else {
+                                    let courseName = data.courses[`${day}${period}`]["name"];
+                                    let classroom = data.courses[`${day}${period}`]["classroom"];
+                                    let professor = data.courses[`${day}${period}`]["prof"][0];
+                                    let genre = data.courses[`${day}${period}`]["genre"];
+                                    console.log(courseName, genre);
+                                    let color = colorClass[genre];
+                                    card.className = `card p-2 py-12 text-center ${color}`;
+                                    card.innerHTML = `${courseName} <br> ${classroom} <br> ${professor}`
+                                    card.setAttribute('onclick', `pushButton("${day}", "${period}")`);
+                                    card.addEventListener('click', function () {
+                                        const drawer = document.querySelector('.drawer');
+                                        if (!drawer.classList.contains('open')) {
+                                            drawer.classList.add('open');
+                                        }
+                                    });
+                                }
 
 
-        };
+                                container.appendChild(card);
+
+                            }
+                        }
+
+                    }
+                }
+            });
+
+        }
+
+        window.onload = displayTimetable();
+
+        let gradeElement = document.querySelector("#grade");
+        let semesterElement = document.querySelector("#semester");
+        gradeElement.addEventListener("change", (event) => {
+            displayTimetable();
+        });
+        semesterElement.addEventListener("change", (event) => {
+            displayTimetable();
+        });
+
 
 
     </script>
@@ -215,65 +262,4 @@
 <br>
 <br>
 
-
-<form id="gradeAndSemesterForm" method="POST">
-    {% csrf_token %}
-    <label for="grade">学年:</label>
-    <select id="grade" name="grade">
-        <option value="1">1</option>
-        <option value="2" checked>2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-    </select>
-    <label for="semester">学期:</label>
-    <select id="semester" name="semester">
-        <option value="1">前期</option>
-        <option value="2">後期</option>
-    </select>
-    <input type="submit" value="時間割を更新">
-</form>
-
-<h2 class="text-2xl mb-4">{{grade}}年 {{semester}}の時間割</h2>
-<div class="flex flex-col">
-    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-            <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                時限/曜日
-                            </th>
-                            {% for day in days %}
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {{ day }}
-                            </th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for i in periods %}
-                        <tr>
-                            <th scope="row" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ i }}
-                            </th>
-                            {% for day in days %}
-                            {% with i|stringformat:"s" as period_str %}
-                            {% with key=day|add:"_"|add:period_str %}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ timetable_matrix|get_item:key }}
-                            </td>
-                            {% endwith %}
-                            {% endwith %}
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

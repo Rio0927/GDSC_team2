@@ -9,6 +9,7 @@ urlpatterns = [
     path('signout/', signout_func, name="signout"),
     path('mypage/', MyPage.as_view(), name="mypage"),
     path('search/', course_search, name='course_search'),
+    path('timetable/', views.timetable, name='timetable'),
     path('display_timetable/', views.display_timetable, name='display_timetable'),
     path('register_timetable/', views.register_timetable, name='register_timetable'),
     path('show_courses/', views.show_courses, name='show_courses'),

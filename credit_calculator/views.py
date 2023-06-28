@@ -26,6 +26,9 @@ def new_timetable_item(request, course_id, semester, grade, day_of_week, period,
 
     selected_course_schedule = CourseSchedule.objects.get(course=selected_course, day_of_week=day_of_week, period=period, classroom=classroom) #選択されたCourseScheduleを取得
 
+    #自身の時間割り取得
+    timetables = Timetable.objects.all()
+
     # すでに登録されていれば登録はスルー（ただしこのコードでは同じ名前の科目で違う先生、教室などの科目は複数登録できてしまう）
     try:
         t = Timetable.objects.get(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # すでに登録されていた場合exceptはスキップされる
@@ -35,7 +38,13 @@ def new_timetable_item(request, course_id, semester, grade, day_of_week, period,
         timetable.save()
         message = "登録されました！！！"
         
-    return HttpResponse(message) #コースのIDを画面に出力
+    context = {
+        'message': message,
+        'course_id': course_id,
+        'timetables': timetables,
+    }
+    return render(request, 'new_timetable_item.html', context)
+    #return HttpResponse(message) #コースのIDを画面に出力
 
 def course_search(request):
     form = CourseSearchForm(request.GET)

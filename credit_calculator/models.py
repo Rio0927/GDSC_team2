@@ -78,8 +78,8 @@ class CourseProfessor(models.Model):
 # ユーザーのプロフィールのモデル
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # ユーザーへの参照
-    grade = models.IntegerField(default=1, blank=True)  # 学年 
-    semester = models.IntegerField(default=1, blank=True)  # 学期　1が前期
+    grade = models.IntegerField(default=1, blank=True)  # 現在の学年 
+    semester = models.IntegerField(default=1, blank=True)  # 現在の学期　1が前期
     
     #以下のコードでユーザーが作成されるとこのユーザープロフィールモデルも同時で作成されるようになる。
     @receiver(post_save, sender=User)
@@ -91,8 +91,8 @@ class UserProfile(models.Model):
 class Timetable(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)  # ユーザープロフィールへの参照
     course_instance = models.ForeignKey(CourseSchedule, on_delete=models.CASCADE)  # 科目のインスタンスへの参照
-    grade = models.IntegerField()
-    semester = models.IntegerField()
+    grade = models.IntegerField() # その授業を登録した学年 
+    semester = models.IntegerField() # その授業を登録した学期 
 
 # ユーザーの「いいね」のモデル
 class Like(models.Model):

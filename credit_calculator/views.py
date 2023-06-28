@@ -7,35 +7,111 @@ from django.views.generic import TemplateView
 from .models import CourseSchedule, Course, Professor, Timetable, UserProfile
 from .forms import SignUpForm
 from .forms import CourseSearchForm
-
 from django.db.models import Q
-
 from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
+from django.contrib import messages
+from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor
+from django.http import JsonResponse
 
-#時間割り登録
-def new_timetable_item(request, course_id, semester, grade, day_of_week, period, classroom): #semesterはCourseScheduleの持っている値　gradeはCourseのminimum_grade_levelにしてある。詳細が不明だったため間違ってるかも
 
-    if semester == "前期":
-        sem = 1
-    elif semester == "後期":
-        sem = 2
 
-    userProfile = UserProfile.objects.get(user=request.user)
 
-    selected_course = Course.objects.get(id=course_id) #科目の取得
 
-    selected_course_schedule = CourseSchedule.objects.get(course=selected_course, day_of_week=day_of_week, period=period, classroom=classroom) #選択されたCourseScheduleを取得
+def register_timetable(request):
+    if request.method == 'POST':
+        user_profile = UserProfile.objects.get(user=request.user)
+        course_id = request.POST.get('course_id')
+        grade = int(request.POST.get('grade'))
+        semester = int(request.POST.get('semester'))
+        course_instance = get_object_or_404(CourseSchedule, pk=course_id)
 
-    # すでに登録されていれば登録はスルー（ただしこのコードでは同じ名前の科目で違う先生、教室などの科目は複数登録できてしまう）
-    try:
-        t = Timetable.objects.get(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # すでに登録されていた場合exceptはスキップされる
-        message = "すでに登録されています"
-    except:
-        timetable = Timetable(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # まだ登録されていなかった場合はここで登録される
-        timetable.save()
-        message = "登録されました！！！"
+        if grade < course_instance.course.minimum_grade_level:
+            return JsonResponse({'status':'error', 'message':'受講可能な学年ではありません。'})
+        if ("前期" if semester==1 else "後期") != course_instance.semester:
+            return JsonResponse({'status':'error', 'message':f'{course_instance.course.name}学期が異なります。'})
+        if Timetable.objects.filter(user=user_profile, course_instance__course__name=course_instance.course.name).exists():
+            return JsonResponse({'status':'error', 'message':course_instance.course.name+'は既に取っています'})
+        if Timetable.objects.filter(user=user_profile, grade=grade, semester=semester, 
+                            course_instance__day_of_week=course_instance.day_of_week, 
+                            course_instance__period=course_instance.period).exists():
+            return JsonResponse({'status':'error', 'message': '同じ曜日、同じ時限に別の授業がすでに登録されています。'})
         
-    return HttpResponse(message) #コースのIDを画面に出力
+
+
+        timetable, created = Timetable.objects.get_or_create(user=user_profile,
+                                                             course_instance=course_instance,
+                                                             grade=grade,
+                                                             semester=semester)
+
+        if created:
+            return JsonResponse({'status':'success', 'message':f'{course_instance.course.name} を時間割に追加しました。'})
+        else:
+            return JsonResponse({'status':'warning', 'message':f'{course_instance.course.name} は既に時間割に登録されています。'})
+
+
+# from collections import defaultdict
+
+
+
+def display_timetable(request):
+    if request.method == 'POST':
+        grade = int(request.POST.get('grade'))
+        semester = int(request.POST.get('semester'))
+        user_profile = UserProfile.objects.get(user=request.user)
+        timetables = Timetable.objects.filter(user=user_profile, 
+                                          grade=grade, 
+                                          semester=semester)
+    
+    else:
+        grade, semester = 1, 1
+        user_profile = UserProfile.objects.get(user=request.user)
+        timetables = Timetable.objects.filter(user=user_profile, 
+                                          grade=1, semester=1)
+    days = list("月火水木金土")
+    periods = list(range(1, 7))  # Adjust this range according to your needs
+
+    timetable_matrix = {}
+    for day in days:
+        for period in periods:
+            key = f"{day}_{period}"
+            timetable_matrix[key] = ""  # Initialize all cells as empty
+
+    for timetable in timetables:
+        key = f"{timetable.course_instance.day_of_week}_{timetable.course_instance.period}"
+        timetable_matrix[key] = timetable.course_instance.course.name  # Overwrite the cells with registered courses
+
+    context = {'grade':grade, 'semester':'前期'if semester==1 else "後期", 'timetable_matrix': timetable_matrix, 'days': days, 'periods': periods}
+    # if request.method == 'POST':return JsonResponse(context)
+    return render(request, 'timetable.html', context)
+
+
+from django.http import JsonResponse
+from django.forms.models import model_to_dict
+
+def show_courses(request):
+    if request.method == 'POST':
+        grade = int(request.POST.get('grade'))
+        semester = "前期" if (int(request.POST.get('semester')) == 1) else "後期"
+        day = request.POST.get('day')
+        period = int(request.POST.get('period'))
+
+        courses = CourseSchedule.objects.filter(course__minimum_grade_level__lte=grade, 
+                                                semester=semester, 
+                                                day_of_week=day, 
+                                                period=period)
+
+        courses_list = []
+        for course in courses:
+            course_dict = model_to_dict(course)
+            course_dict["course_name"] = course.course.name
+            course_dict["course_genre"] = course.course.genre.name
+            course_profs = CourseProfessor.objects.filter(course_schedule=course).select_related('professor')
+            course_dict["course_prof"] = [f"{prof.professor.last_name} {prof.professor.first_name}" for prof in course_profs]
+            courses_list.append(course_dict)
+
+        return JsonResponse({'status':'success', 'courses': courses_list})
+
 
 def course_search(request):
     form = CourseSearchForm(request.GET)
@@ -147,3 +223,29 @@ def signout_func(request):
 
 class MyPage(TemplateView):
     template_name = "mypage.html"
+
+
+    #時間割り登録
+def new_timetable_item(request, course_id, semester, grade, day_of_week, period, classroom): #semesterはCourseScheduleの持っている値　gradeはCourseのminimum_grade_levelにしてある。詳細が不明だったため間違ってるかも
+
+    if semester == "前期":
+        sem = 1
+    elif semester == "後期":
+        sem = 2
+
+    userProfile = UserProfile.objects.get(user=request.user)
+
+    selected_course = Course.objects.get(id=course_id) #科目の取得
+
+    selected_course_schedule = CourseSchedule.objects.get(course=selected_course, day_of_week=day_of_week, period=period, classroom=classroom) #選択されたCourseScheduleを取得
+
+    # すでに登録されていれば登録はスルー（ただしこのコードでは同じ名前の科目で違う先生、教室などの科目は複数登録できてしまう）
+    try:
+        t = Timetable.objects.get(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # すでに登録されていた場合exceptはスキップされる
+        message = "すでに登録されています"
+    except:
+        timetable = Timetable(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # まだ登録されていなかった場合はここで登録される
+        timetable.save()
+        message = "登録されました！！！"
+        
+    return HttpResponse(message) #コースのIDを画面に出力

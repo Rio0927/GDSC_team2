@@ -18,7 +18,14 @@
     <a href="{% url 'signup' %}">サインアップする</a><br>
     <a href="{% url 'signin' %}">サインインする</a><br>
     {% endif %}
-    
+    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold mx-28 py-2 px-4 rounded">
+      <a href="{% url 'course_search' %}">検索画面</a>
+  </button>
+  <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold mx-28 py-2 px-4 rounded">
+
+  <a href="{% url 'display_timetable' %}">時間割画面</a>
+</button>
+
     
     <script>
         function toggleMenu() {

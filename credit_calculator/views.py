@@ -14,9 +14,7 @@ from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfes
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
 
-
-
-
+# 時間割を登録
 def register_timetable(request):
     if request.method == 'POST':
         user_profile = UserProfile.objects.get(user=request.user)
@@ -29,14 +27,14 @@ def register_timetable(request):
             return JsonResponse({'status':'error', 'message':'受講可能な学年ではありません。'})
         if ("前期" if semester==1 else "後期") != course_instance.semester:
             return JsonResponse({'status':'error', 'message':f'{course_instance.course.name}学期が異なります。'})
-        if Timetable.objects.filter(user=user_profile, course_instance__course__name=course_instance.course.name).exists():
+        if Timetable.objects.filter(user=user_profile, course_instance__course=course_instance.course).exists():
             return JsonResponse({'status':'error', 'message':course_instance.course.name+'は既に取っています'})
-        if Timetable.objects.filter(user=user_profile, grade=grade, semester=semester, 
-                            course_instance__day_of_week=course_instance.day_of_week, 
-                            course_instance__period=course_instance.period).exists():
-            return JsonResponse({'status':'error', 'message': '同じ曜日、同じ時限に別の授業がすでに登録されています。'})
-        
 
+        existing_course = Timetable.objects.filter(user=user_profile, grade=grade, semester=semester, 
+                                                   course_instance__day_of_week=course_instance.day_of_week, 
+                                                   course_instance__period=course_instance.period)
+        if existing_course.exists():
+            existing_course.delete()
 
         timetable, created = Timetable.objects.get_or_create(user=user_profile,
                                                              course_instance=course_instance,
@@ -47,6 +45,7 @@ def register_timetable(request):
             return JsonResponse({'status':'success', 'message':f'{course_instance.course.name} を時間割に追加しました。'})
         else:
             return JsonResponse({'status':'warning', 'message':f'{course_instance.course.name} は既に時間割に登録されています。'})
+
 
 
 # 時間割画面の元をレンダリングするだけ

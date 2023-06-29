@@ -10,7 +10,7 @@
 
 <body>
     <div class="bg-white shadow-lg rounded px-8 pt-6 pb-8 mb-4 timetable-grade-and-semester">
-        <h1 class="text-2xl font-bold my-4">学年・学期を選択</h1>
+        <h1 class="text-2xl font-bold my-4">学年・学期を選択（「Ctrl+矢印キー」でも変更可能）</h1>
         <label for="grade">学年:</label>
         <select id="grade" name="grade"
             class="shadow appearance-none border rounded w-50 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -32,25 +32,42 @@
     </div>
 
 
-
-    <style>
-        /* 時間割を登録するときに画面下部から出てくるメニュー */
-        .drawer {
-            height: 0;
-            overflow: hidden;
-            transition: height 0.5s;
-            position: fixed;
-            bottom: 0;
-        }
-
-        .drawer.open {
-            height: 400px;
-            overflow: auto;
-        }
-    </style>
-
-
     <script>
+        document.addEventListener('keydown', function (event) {
+            if (event.ctrlKey) {
+                const gradeSelect = document.getElementById("grade");
+                const semesterSelect = document.getElementById("semester");
+
+                // Get current selected values
+                let grade = Number(gradeSelect.value);
+                let semester = Number(semesterSelect.value);
+
+                // Check if left or right arrow is pressed
+                if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                    if (event.key === "ArrowLeft" && grade > 1) {
+                        grade--;
+                    }
+                    else if (event.key === "ArrowRight" && grade < 4) {
+                        grade++;
+                    }
+                    gradeSelect.value = grade;
+                }
+                // Check if up or down arrow is pressed
+                else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                    if (event.key === "ArrowUp" && semester > 1) {
+                        semester--;
+                    }
+                    else if (event.key === "ArrowDown" && semester < 2) {
+                        semester++;
+                    }
+                    semesterSelect.value = semester;
+                }
+            }
+            displayTimetable();
+        });
+
+
+
         // 時間割表示機能
         function displayTimetable() {
             let grade = document.getElementById('grade').value;
@@ -93,10 +110,11 @@
                                 if (period == "") {
                                     card.className = 'card bg-white text-2xl p-2 py-12 text-center';
                                     card.textContent = day;
-
+                                    card.setAttribute('onclick', 'closeDrawer();');
                                 } else if (day == "") {
                                     card.textContent = period;
                                     card.className = 'card bg-white text-2xl p-2 py-12 text-center';
+                                    card.setAttribute('onclick', 'closeDrawer();');
                                 } else {
                                     let courseName = data.courses[`${day}${period}`]["name"];
                                     let classroom = data.courses[`${day}${period}`]["classroom"];
@@ -108,6 +126,15 @@
                                     card.setAttribute('onclick', `getAvailableCourse("${day}", "${period}")`);
                                     card.addEventListener('click', function () {
                                         const drawer = document.querySelector('.drawer');
+                                        if (parseInt(period, 10) >= 4) {
+                                            drawer.classList.remove('rounded-t-3xl');
+                                            drawer.classList.add('rounded-b-3xl');
+                                            drawer.classList.add('top');
+                                        } else {
+                                            drawer.classList.remove('rounded-b-3xl');
+                                            drawer.classList.add('rounded-t-3xl');
+                                            drawer.classList.remove('top');
+                                        }
                                         if (!drawer.classList.contains('open')) {
                                             drawer.classList.add('open');
                                         }
@@ -240,6 +267,26 @@
         });
 
     </script>
+    <style>
+        /* 時間割を登録するときに画面下部から出てくるメニュー */
+        .drawer {
+            height: 0;
+            overflow: hidden;
+            transition: height 0.5s;
+            position: fixed;
+            bottom: 0;
+        }
+
+        .drawer.top {
+            top: 0;
+            bottom: auto;
+        }
+
+        .drawer.open {
+            height: 350px;
+            overflow: auto;
+        }
+    </style>
 </body>
 
 </html>

@@ -11,12 +11,24 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
-from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor
+from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor, Genre
 from django.http import JsonResponse
 
 
+def display_credit(request):
+    genres = Genre.objects.all()
+    timetables = Timetable.objects.all()
 
+    for genre in genres:
+        genre.course_count = genre.courses.all().filter(genre=genre).count()    
 
+    context = {
+        'genres': genres,
+        'timetables': timetables,
+        'genres': genres
+    }
+
+    return render(request, 'display_credit.html', context)
 
 def register_timetable(request):
     if request.method == 'POST':
@@ -26,27 +38,6 @@ def register_timetable(request):
         semester = int(request.POST.get('semester'))
         course_instance = get_object_or_404(CourseSchedule, pk=course_id)
 
-<<<<<<< HEAD
-    #自身の時間割り取得
-    timetables = Timetable.objects.all()
-
-    # すでに登録されていれば登録はスルー（ただしこのコードでは同じ名前の科目で違う先生、教室などの科目は複数登録できてしまう）
-    try:
-        t = Timetable.objects.get(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # すでに登録されていた場合exceptはスキップされる
-        message = "すでに登録されています"
-    except:
-        timetable = Timetable(user = userProfile, course_instance=selected_course_schedule, grade=grade, semester=sem) # まだ登録されていなかった場合はここで登録される
-        timetable.save()
-        message = "登録されました！！！"
-        
-    context = {
-        'message': message,
-        'course_id': course_id,
-        'timetables': timetables,
-    }
-    return render(request, 'new_timetable_item.html', context)
-    #return HttpResponse(message) #コースのIDを画面に出力
-=======
         if grade < course_instance.course.minimum_grade_level:
             return JsonResponse({'status':'error', 'message':'受講可能な学年ではありません。'})
         if ("前期" if semester==1 else "後期") != course_instance.semester:
@@ -133,7 +124,6 @@ def show_courses(request):
 
         return JsonResponse({'status':'success', 'courses': courses_list})
 
->>>>>>> 0b0a78bc1560ea7bf493595cc1db876ed5c28309
 
 def course_search(request):
     form = CourseSearchForm(request.GET)

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Credit Calculator</title>
+  </head>
+  <body>
+    <h1>UserNameの単位取得状況</h1>
+    <table>
+      <tr>
+        <th>科目群</th>
+        <th>所定</th>
+        <th>修得</th>
+        <th>不足</th>
+      </tr>
+      {% for genre in genres %}
+      <tr>
+        <td>{{ genre.name }}</td>
+        <td>{{ genre.credit_minimum }}</td>
+        {% comment %} ジャンルが共通の科目の数を取得したい {% endcomment %}
+        <td>
+          {{ genre.course_count }}
+        </td>
+        <td></td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h1>Timetables</h1>
+    <ul>
+      {% for timetable in timetables %}
+      <li>{{ timetable.course_instance.course.name }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

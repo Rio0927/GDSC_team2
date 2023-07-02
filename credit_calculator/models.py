@@ -19,7 +19,7 @@ class Course(models.Model):
         (SELECT, 'Select'),
     ]
 
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)  # ジャンルへの参照
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE, related_name='courses')  # ジャンルへの参照
     faculty = models.CharField(max_length=20, default='国際情報学部') #学部の名前
     name = models.CharField(max_length=100)  # 科目の名前
     credit_number = models.IntegerField(default=2)  # 単位数

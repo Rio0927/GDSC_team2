@@ -14,6 +14,27 @@ from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfes
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
 
+
+def edit_profile_func(request):
+    if request.method == "POST":
+        grade = request.POST["grade_select"]
+        semester = request.POST["semester_select"]
+
+        print(type(grade))
+        print(type(semester))
+
+        profile = UserProfile.objects.get(user=request.user)
+
+        profile.grade = int(grade)
+        profile.semester = int(semester)
+
+        profile.save()
+
+        return redirect("mypage")
+
+    return render(request, "edit_profile.html")
+
+
 # 時間割を登録
 def register_timetable(request):
     if request.method == 'POST':
@@ -117,10 +138,10 @@ def show_courses(request):
 # 授業を検索する
 def course_search(request):
     form = CourseSearchForm(request.GET)
-    schedules = CourseSchedule.objects.all()
-
     #フォームが入力されているとき（検索において学期、学年、教授名などが指定されているとき）
     if form.is_valid():
+        schedules = CourseSchedule.objects.all()
+
         semester = form.cleaned_data['semester']
         grade_level = form.cleaned_data['grade_level']
         professor_name = form.cleaned_data['professor_name']
@@ -226,8 +247,12 @@ def signout_func(request):
 
 
 class MyPage(TemplateView):
-    template_name = "mypage.html"
-
+    
+    def get(self, request):
+        profile = UserProfile.objects.get(user=request.user)
+        return render(request, '../templates/mypage.html', {
+            'profile': profile,
+        })
 
 #時間割り登録
 def new_timetable_item(request, course_id, semester, grade, day_of_week, period, classroom): #semesterはCourseScheduleの持っている値　gradeはCourseのminimum_grade_levelにしてある。詳細が不明だったため間違ってるかも

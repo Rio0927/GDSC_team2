@@ -1,0 +1,19 @@
+{% block content %}
+<form method="POST">{% csrf_token %} 
+    <select name="grade_select">
+      <option value="1" selected>1年</option>
+      <option value="2">2年</option>
+      <option value="3">3年</option>
+      <option value="4">4年</option>
+    </select>
+
+    <select name="semester_select">
+        <option value="1" selected>前期</option>
+        <option value="2">後期</option>
+      </select>
+
+    <button type="submit">
+        変更
+    </button>
+</form>
+{% endblock %}

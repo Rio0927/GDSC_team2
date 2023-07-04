@@ -24,26 +24,38 @@ def display_credit(request):
     #    genre.course_count = genre.courses.all().filter(genre=genre and timetable__isnull=False).count()    
 
     genre_course_counts = []
+    credit_total = 0
+    difference_total = 0
+    minimum_total = 0
     for genre in genres:
+        minimum_total += genre.credit_minimum
         course_count = CourseSchedule.objects.filter(course__genre=genre, timetable__isnull=False).count()
         credit_sum = genre.courses.filter(schedules__timetable__isnull=False).aggregate(total_credits=Sum('credit_number')).get('total_credits')
         credit_sum = 0 if credit_sum is None else credit_sum
-        difference = genre.credit_minimum - credit_sum
-        if difference < 0:
+        credit_total += credit_sum
+        difference =  credit_sum - genre.credit_minimum
+        if difference > 0:
             difference = 0
+        difference_total += difference
         genre_course_counts.append({
             'genre': genre,
             'course_count': course_count,
             'name': genre.name,
             'credit_minimum': genre.credit_minimum,
             'sum': credit_sum,
-            'difference': difference
+            'credit_total': credit_total,
+            'difference': difference,
+            'difference_total': difference_total,
+            'minimum_total': minimum_total
         })
 
     context = {
         'genres': genres,
         'timetables': timetables,
-        'genres': genre_course_counts
+        'genres': genre_course_counts,
+        'credit_total': credit_total,
+        'difference_total': difference_total,
+        'minimum_total': minimum_total
     }
 
     return render(request, 'display_credit.html', context)

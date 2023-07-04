@@ -16,11 +16,10 @@
       <tr>
         <td>{{ genre.name }}</td>
         <td>{{ genre.credit_minimum }}</td>
-        {% comment %} ジャンルが共通の科目の数を取得したい {% endcomment %}
+        <td>{{ genre.sum }}</td>
         <td>
-          {{ genre.course_count }}
+          {{ genre.difference}}
         </td>
-        <td></td>
       </tr>
       {% endfor %}
     </table>

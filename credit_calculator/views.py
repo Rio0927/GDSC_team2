@@ -13,19 +13,37 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor, Genre
 from django.http import JsonResponse
+from django.db.models import Sum
 
 
 def display_credit(request):
     genres = Genre.objects.all()
     timetables = Timetable.objects.all()
 
+    #for genre in genres:
+    #    genre.course_count = genre.courses.all().filter(genre=genre and timetable__isnull=False).count()    
+
+    genre_course_counts = []
     for genre in genres:
-        genre.course_count = genre.courses.all().filter(genre=genre).count()    
+        course_count = CourseSchedule.objects.filter(course__genre=genre, timetable__isnull=False).count()
+        credit_sum = genre.courses.filter(schedules__timetable__isnull=False).aggregate(total_credits=Sum('credit_number')).get('total_credits')
+        credit_sum = 0 if credit_sum is None else credit_sum
+        difference = genre.credit_minimum - credit_sum
+        if difference < 0:
+            difference = 0
+        genre_course_counts.append({
+            'genre': genre,
+            'course_count': course_count,
+            'name': genre.name,
+            'credit_minimum': genre.credit_minimum,
+            'sum': credit_sum,
+            'difference': difference
+        })
 
     context = {
         'genres': genres,
         'timetables': timetables,
-        'genres': genres
+        'genres': genre_course_counts
     }
 
     return render(request, 'display_credit.html', context)

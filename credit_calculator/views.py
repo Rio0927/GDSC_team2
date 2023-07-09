@@ -265,6 +265,41 @@ def signout_func(request):
 
 class MyPage(TemplateView):
     template_name = "mypage.html"
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+
+        profile = UserProfile.objects.get(user=self.request.user)
+        grade = profile.grade
+
+        print(profile.user.username)
+
+        if profile.semester == 1:
+            semester = "前期"
+        elif profile.semester == 2:
+            semester = "後期"
+        context["grade"] = grade
+        context["semester"] = semester
+        return context
+    
+def edit_profile_func(request):
+    if request.method == "POST":
+        grade = request.POST["grade_select"]
+        semester = request.POST["semester_select"]
+
+        print(type(grade))
+        print(type(semester))
+
+        profile = UserProfile.objects.get(user=request.user)
+
+        profile.grade = int(grade)
+        profile.semester = int(semester)
+
+        profile.save()
+
+        return redirect("mypage")
+
+    return render(request, "edit_profile.html")
+
 
 
     #時間割り登録
@@ -291,3 +326,4 @@ def new_timetable_item(request, course_id, semester, grade, day_of_week, period,
         message = "登録されました！！！"
         
     return HttpResponse(message) #コースのIDを画面に出力
+

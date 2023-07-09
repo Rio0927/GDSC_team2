@@ -3,7 +3,8 @@
 
 {% if user.is_authenticated %}
 <h3>{{ user.username }}</h3>
-<h3>memo:プロフィール画像と学部情報についてはまだ開発してません</h3>
+<h3>国際情報学部{{ grade }}年 {{ semester }}</h3>
+<a href="{% url 'edit_profile' %}">プロフィールを編集</a>
 {% else %}
 <a href="{% url 'signin' %}">サインインしてください</a>
 {% endif %}

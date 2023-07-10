@@ -12,6 +12,8 @@
     {% if user.is_authenticated %}
         <h1 class="mb-10 text-2xl">ログイン中のユーザー：{{ user }}</h1>
         <a href="{% url 'signout' %}" class="w-64 mb-10 px-12 py-4 font-semibold rounded-full bg-blue-500 text-white text-center ">サインアウトする</a>
+        <a href="{% url 'display_calculator' %}" class="w-64 mb-10 px-12 py-4 font-semibold rounded-full bg-blue-500 text-white text-center ">単位取得状況を確認</a>
+        
     {% else %}
         <a href="{% url 'signin' %}" class="w-64 mb-10 px-12 py-4 font-semibold rounded-full bg-blue-500 text-white text-center">SIGN IN</a>
         <a href="{% url 'signup' %}" class="w-64 px-12 py-4 font-semibold rounded-full border border-blue-500 text-blue-500 bg-white text-center">CREATE ACCOUNT</a>

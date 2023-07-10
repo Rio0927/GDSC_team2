@@ -4,38 +4,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import login, logout
 from django.views.generic import TemplateView
-from .models import CourseSchedule, Course, Timetable, UserProfile
 from .forms import SignUpForm
 from .forms import CourseSearchForm
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
-
-
-def edit_profile_func(request):
-    if request.method == "POST":
-        grade = request.POST["grade_select"]
-        semester = request.POST["semester_select"]
-
-        print(type(grade))
-        print(type(semester))
-
-        profile = UserProfile.objects.get(user=request.user)
-
-        profile.grade = int(grade)
-        profile.semester = int(semester)
-
-        profile.save()
-
-        return redirect("mypage")
-
-    return render(request, "edit_profile.html")
-from django.contrib import messages
 from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor, Genre
-from django.http import JsonResponse
 from django.db.models import Sum
 
 
@@ -43,10 +19,6 @@ def display_credit(request):
     genres = Genre.objects.all()
     timetables = Timetable.objects.all()
 
-    #for genre in genres:
-    #    genre.course_count = genre.courses.all().filter(genre=genre and timetable__isnull=False).count()    
-
-# 時間割を登録
     genre_course_counts = []
     credit_total = 0
     difference_total = 0

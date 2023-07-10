@@ -1,16 +1,7 @@
+{% extends "base.html" %}
 {% load static %}
 {% load widget_tweaks %}
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
-</head>
-
-<body>
+{% block content %}
 
     <div class="container mx-auto">
         <h1 class="text-4xl my-4">Course Search</h1>
@@ -70,24 +61,24 @@
             </div>
         </form>
 
-        
-        <div class="bg-white shadow-lg rounded px-8 pt-6 pb-8 mb-4 timetable-grade-and-semester">
+
+        <div class="bg-white shadow-lg rounded px-8 pt-6 pb-8 mb-4 timetable-grade-and-semester sticky">
             <h1 class="text-2xl font-bold my-4">時間割を追加する学年・学期を選択</h1>
             <label for="grade">学年:</label>
-            <select id="grade" name="grade" class = "shadow appearance-none border rounded w-50 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            <select id="grade" name="grade"
+                class="shadow appearance-none border rounded w-50 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
             </select>
             <label for="semester">学期:</label>
-            <select id="semester" name="semester" class = "shadow appearance-none border rounded w-50 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> 
+            <select id="semester" name="semester"
+                class="shadow appearance-none border rounded w-50 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <option value="1">前期</option>
                 <option value="2">後期</option>
             </select>
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold mx-28 py-2 px-4 rounded">
-                <a href="{% url 'display_timetable' %}">時間割を見る</a>
-            </button>
+
         </div>
 
 
@@ -103,17 +94,73 @@
                 <!-- 指定した学期 -->
                 {% if semester %}{% for sem in semester %}{{ sem }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}の検索結果
             </h2>
-            
+            <button class = "bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded mb-6" onclick="changeView();">表示形式を変更</button>
 
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div id="search_result">
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+<script>
+
+
+    let view1 = `<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {% csrf_token %}
+                    {% for course in schedules %}
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-bold text-lg mb-2">{{ course.course.name }}</h3>
+                        <p><span class="font-bold">曜日:</span> {{ course.day_of_week }}曜日</p>
+                        <p><span class="font-bold">時間:</span> {{ course.period }}時限</p>
+                        <p><span class="font-bold">教室:</span> {{ course.classroom }}</p>
+                        <p><span class="font-bold">教授:</span>
+                            {% for professor in course.professors.all %}
+                            {{ professor.professor.last_name }}
+                            {% if professor.professor.last_name != professor.professor.first_name %}
+                            {{ professor.professor.first_name }}
+                            {% endif %}
+                            {% if not forloop.last %}
+                            ,
+                            {% endif %}
+                            {% endfor %}
+                        </p>
+    
+                        <p><span class="font-bold">学期:</span> {{ course.semester }}</p>
+                        <br>
+                        <button onclick="registerCourse({{ course.id }})"
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold px-2 rounded add-course">
+                       1年前期に追加
+                    </button>
+                    </div>
+                    {% endfor %}
+                </div>`
+
+    let view2 = `<div class="grid grid-cols-1 gap-2">
                 {% csrf_token %}
+                <div class="grid grid-cols-6 gap-2 border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-lg mb-2"></h3>
+
+                    <h3 class="font-bold text-lg mb-2">授業名</h3>
+                    <h3 class="font-bold text-lg mb-2">曜日</h3>
+                    <h3 class="font-bold text-lg mb-2">時間</h3>
+                    <h3 class="font-bold text-lg mb-2">教室</h3>
+                    <h3 class="font-bold text-lg mb-2">教授</h3>
+
+                </div>
                 {% for course in schedules %}
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h3 class="font-bold text-lg mb-2">{{ course.course.name }}</h3>
-                    <p><span class="font-bold">曜日:</span> {{ course.day_of_week }}曜日</p>
-                    <p><span class="font-bold">時間:</span> {{ course.period }}時限</p>
-                    <p><span class="font-bold">教室:</span> {{ course.classroom }}</p>
-                    <p><span class="font-bold">教授:</span>
+                <div class="grid grid-cols-6 gap-6 border border-gray-200 rounded-lg p-4">
+                    <button onclick="registerCourse({{ course.id }})"
+                                class="bg-green-500 hover:bg-green-700 text-white font-bold px-2 rounded add-course">
+                            1年前期に追加
+                            </button>
+                    <p>{{ course.course.name }}</p>
+                    <p>{{ course.day_of_week }}曜日</p>
+                    <p>{{ course.period }}時限</p>
+                    <p>{{ course.classroom }}</p>
+                    <p>
                         {% for professor in course.professors.all %}
                         {{ professor.professor.last_name }}
                         {% if professor.professor.last_name != professor.professor.first_name %}
@@ -125,30 +172,34 @@
                         {% endfor %}
                     </p>
 
-                    <p><span class="font-bold">学期:</span> {{ course.semester }}</p>
-                    <br>
-                    <button onclick="registerCourse({{ course.id }})"
-                    class="bg-green-500 hover:bg-green-700 text-white font-bold px-2 rounded add-course">
-                   1年前期に追加
-                </button>
                 </div>
                 {% endfor %}
-            </div>
-        </div>
+            </div> `;
 
-    </div>
 
-</body>
+            let view = true;
 
-<script>
+            function changeView() {
+                if (view) {
+                    document.getElementById("search_result").innerHTML = view2;
+                    view = false;
+                } else {
+                    document.getElementById("search_result").innerHTML = view1;
+                    view = true;
+                   
+                }
+                view *= -1;
+            }
+window.onload = changeView();
+
 
     let grade = document.getElementById('grade').value;
     let semester = document.getElementById('semester').value;
 
     document.getElementById('grade').addEventListener('change', function () {
         grade = document.getElementById('grade').value;
-        let semester_name = semester==1?"前期":"後期";
-        let replacement = document.getElementsByClassName( "add-course" );
+        let semester_name = semester == 1 ? "前期" : "後期";
+        let replacement = document.getElementsByClassName("add-course");
         for (i = 0; i < replacement.length; i++) {
             replacement[i].innerHTML = `${grade}年${semester_name}に追加`;
         }
@@ -156,8 +207,8 @@
 
     document.getElementById('semester').addEventListener('change', function () {
         semester = document.getElementById('semester').value;
-        let semester_name = semester==1?"前期":"後期";
-        let replacement = document.getElementsByClassName( "add-course" );
+        let semester_name = semester == 1 ? "前期" : "後期";
+        let replacement = document.getElementsByClassName("add-course");
 
         for (i = 0; i < replacement.length; i++) {
             replacement[i].innerHTML = `${grade}年${semester_name}に追加`;
@@ -193,29 +244,12 @@
         });
     }
 
-
-    window.onscroll = function() {scrollFunction()};
-
-    function scrollFunction() {
-        var header = document.querySelector(".timetable-grade-and-semester");
-
-        if (window.pageYOffset > header.offsetTop+300) {
-            if(!header.classList.contains("sticky")) {
-                header.classList.add("sticky");
-            }
-        } else {
-            header.classList.remove("sticky");
-        }
-    }
-
-
-
 </script>
 <style type="text/css">
-.sticky {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
+    .stick {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+    }
 </style>
-</html>
+{% endblock %}

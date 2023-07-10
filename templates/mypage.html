@@ -5,10 +5,9 @@
 <h2 class="text-2xl font-bold text-blue-500 mb-6 my-24">マイページ</h2>
 <img class="mb-10 w-64 h-64 rounded-full object-cover" src="{% static 'images/logo.png' %}" alt="">
 {% if user.is_authenticated %}
+<<<<<<< HEAD
 <h3 class="text-2xl font-bold">{{ user.username }}</h3>
 <h3 class="text-2xl font-bold">{{ profile.grade }}年</h3>
-<h3>memo:プロフィール画像と学部情報についてはまだ開発してません</h3>
-<a href="{% url 'edit_profile' %}">プロフィールを編集</a>
 {% else %}
 <a href="{% url 'signin' %}">サインインしてください</a>
 {% endif %}

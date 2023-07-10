@@ -33,9 +33,57 @@ def edit_profile_func(request):
         return redirect("mypage")
 
     return render(request, "edit_profile.html")
+from django.contrib import messages
+from .models import Course, CourseSchedule, UserProfile, Timetable, CourseProfessor, Genre
+from django.http import JsonResponse
+from django.db.models import Sum
 
+
+def display_credit(request):
+    genres = Genre.objects.all()
+    timetables = Timetable.objects.all()
+
+    #for genre in genres:
+    #    genre.course_count = genre.courses.all().filter(genre=genre and timetable__isnull=False).count()    
 
 # 時間割を登録
+    genre_course_counts = []
+    credit_total = 0
+    difference_total = 0
+    minimum_total = 0
+    for genre in genres:
+        minimum_total += genre.credit_minimum
+        course_count = CourseSchedule.objects.filter(course__genre=genre, timetable__isnull=False).count()
+        credit_sum = genre.courses.filter(schedules__timetable__isnull=False).aggregate(total_credits=Sum('credit_number')).get('total_credits')
+        credit_sum = 0 if credit_sum is None else credit_sum
+        credit_total += credit_sum
+        difference =  credit_sum - genre.credit_minimum
+        if difference > 0:
+            difference = 0
+        difference_total += difference
+        genre_course_counts.append({
+            'genre': genre,
+            'course_count': course_count,
+            'name': genre.name,
+            'credit_minimum': genre.credit_minimum,
+            'sum': credit_sum,
+            'credit_total': credit_total,
+            'difference': difference,
+            'difference_total': difference_total,
+            'minimum_total': minimum_total
+        })
+
+    context = {
+        'genres': genres,
+        'timetables': timetables,
+        'genres': genre_course_counts,
+        'credit_total': credit_total,
+        'difference_total': difference_total,
+        'minimum_total': minimum_total
+    }
+
+    return render(request, 'display_credit.html', context)
+
 def register_timetable(request):
     if request.method == 'POST':
         user_profile = UserProfile.objects.get(user=request.user)
@@ -253,6 +301,42 @@ class MyPage(TemplateView):
         return render(request, '../templates/mypage.html', {
             'profile': profile,
         })
+    template_name = "mypage.html"
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+
+        profile = UserProfile.objects.get(user=self.request.user)
+        grade = profile.grade
+
+        print(profile.user.username)
+
+        if profile.semester == 1:
+            semester = "前期"
+        elif profile.semester == 2:
+            semester = "後期"
+        context["grade"] = grade
+        context["semester"] = semester
+        return context
+    
+def edit_profile_func(request):
+    if request.method == "POST":
+        grade = request.POST["grade_select"]
+        semester = request.POST["semester_select"]
+
+        print(type(grade))
+        print(type(semester))
+
+        profile = UserProfile.objects.get(user=request.user)
+
+        profile.grade = int(grade)
+        profile.semester = int(semester)
+
+        profile.save()
+
+        return redirect("mypage")
+
+    return render(request, "edit_profile.html")
+
 
 #時間割り登録
 def new_timetable_item(request, course_id, semester, grade, day_of_week, period, classroom): #semesterはCourseScheduleの持っている値　gradeはCourseのminimum_grade_levelにしてある。詳細が不明だったため間違ってるかも

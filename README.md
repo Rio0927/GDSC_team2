@@ -19,7 +19,7 @@ pip install django
 ```
 3.アプリケーションのclone
 ```bash
-git clone 
+git clone https://github.com/Rio0927/GDSC_team2.git
 ```
 4.マイグレーションの実行
 ```bash

@@ -12,3 +12,21 @@
 - フレームワーク: Django
 
 ## 使用方法
+1.Pythonのインストール<br>
+2.Djangoのインストール<br>
+```bash
+pip install django
+```
+3.アプリケーションのclone
+```bash
+git clone 
+```
+4.マイグレーションの実行
+```bash
+python manage.py migrate
+```
+
+5.サーバー起動
+```bash
+python manage.py runserver
+```

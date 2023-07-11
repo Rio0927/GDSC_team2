@@ -32,7 +32,7 @@ def display_credit(request):
         difference =  credit_sum - genre.credit_minimum
         if difference > 0:
             difference = 0
-        difference_total += difference
+        difference_total = credit_total - minimum_total
         genre_course_counts.append({
             'genre': genre,
             'course_count': course_count,
